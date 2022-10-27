@@ -1,0 +1,129 @@
+<!--
+title: Installation de Proxmox Backup Server
+description: Installation d'un serveur dédié aux sauvegardes : PBS
+published: true
+date: 2022-10-27T15:36:26.506Z
+tags: virtualisation, proxmox, serveur
+editor: ckeditor
+dateCreated: 2022-10-27T15:36:26.506Z
+-->
+
+<h1>Proxmox Backup Server : installation et configuration</h1>
+<p>Un petit mémo sur l’installation et la configuration de <a href="https://pbs.proxmox.com/wiki/index.php/Main_Page"><strong>Proxmox Backup Server</strong></a> afin de découvrir ce nouveau projet et faire des tests.<br>A savoir, Proxmox Backup Server est encore en développement, ici la version utilisée est la béta 2 (release 0.9-0).</p>
+<h2>Infrastructure de tests</h2>
+<p>Configuration utilisée pour cet article :</p>
+<ul>
+  <li>VM de 50Go pour le système, hébergé sur le Ceph du cluster proxmox</li>
+  <li>Disque de 4To2 pour la sauvegarde, hébergé sur un serveur NFS externe au cluster proxmox</li>
+</ul>
+<figure class="image"><img src="https://cdn-02.memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-550x247.png" alt="" srcset="https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-550x247.png 550w, https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-250x112.png 250w, https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-768x345.png 768w, https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-200x90.png 200w, https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs-300x135.png 300w, https://memo-linux.com/wp-content/uploads/2020/10/proxmox_vm_pbs.png 994w" sizes="100vw" width="550"></figure>
+<h2>Installer Proxmox Backup Server</h2>
+<p>Dans ce mémo, l’installation de Proxmox Backup Server est virtualisé et hébergé sur un <a href="https://memo-linux.com/?s=proxmox+cluster"><strong>cluster Proxmox</strong></a> dont le stockage de la VM est sur un serveur NFS externe.</p>
+<ul>
+  <li>Téléchargement de l’ISO Proxmox Backup Server : <a href="https://www.proxmox.com/en/downloads/category/iso-images-pbs"><strong>https://www.proxmox.com/en/downloads/category/iso-images-pbs</strong></a></li>
+  <li>Démarrer sur l’image ISO, puis sélectionner «&nbsp;Install Proxmox Backup Server&nbsp;» :</li>
+  <li>Cliquer sur «&nbsp;I agree&nbsp;» :</li>
+  <li>Sélectionner le disque ou sera installé le système puis cliquer sur «&nbsp;Next&nbsp;» (attention, si plusieurs disques) :</li>
+  <li>Pour configurer la localisation ainsi que le fuseau horaire, cherche le pays correspondant, puis cliquer sur «&nbsp;Next&nbsp;» :</li>
+  <li>Définir un mot de passe ainsi qu’une adresse mail, puis cliquer sur «&nbsp;Next&nbsp;» :</li>
+  <li>Configurer le réseau :<ul>
+      <li>Sélectionner l’interface reseau</li>
+      <li>Définir un <a href="https://fr.wikipedia.org/wiki/Fully_qualified_domain_name">FQDN</a></li>
+      <li>L’adresse IP</li>
+      <li>masque de sous réseau</li>
+      <li>passerelle</li>
+      <li><a href="https://memo-linux.com/?s=Serveur+DNS"><strong>Serveur DNS</strong></a></li>
+    </ul>
+  </li>
+  <li>Résumé de la configuration globale de Proxmox Backup Server :</li>
+  <li>Une fois l’installation terminée, cliquer sur «&nbsp;Reboot&nbsp;» :</li>
+</ul>
+<h2>Configurer Proxmox Backup Server</h2>
+<ul>
+  <li>Se connecter à l’interface web de Proxmox Backup Server : <a href="https://memo-linux.com/?s=proxmox"><strong>https://fqdn:8007</strong></a> :<ul>
+      <li>Lors de la première connexion, accepter le certificat auto-signé :</li>
+      <li>Saisir les identifiants pour se connecter à l’interface web de Proxmox Backup Server :</li>
+    </ul>
+  </li>
+  <li>L’interface web de Proxmox Backup Server :</li>
+  <li>Mettre à jour Proxmox Backup Server :<ul>
+      <li>Cliquer sur «&nbsp;Administration&nbsp;» puis «&nbsp;Mise à jour&nbsp;» :</li>
+      <li>Cliquer sur Rafraîchir (un message d’avertissement va s’afficher concernant la licence, cliquer sur OK) :</li>
+      <li>Cliquer sur «&nbsp;Appliquer les mises à jours&nbsp;» :<br>&nbsp;</li>
+    </ul>
+  </li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+  <li>Une console proxmox s’ouvre, répondre Y :</li>
+</ul>
+<figure class="image"><img src="https://cdn-02.memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade-550x152.png" alt="" srcset="https://memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade-550x152.png 550w, https://memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade-250x69.png 250w, https://memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade-768x212.png 768w, https://memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade-200x55.png 200w, https://memo-linux.com/wp-content/uploads/2020/10/pve_backup_server_upgrade.png 1010w" sizes="100vw" width="550"></figure>
+<ul>
+  <li>Créer un répertoire pour le futur stockage des sauvegardes, cliquer sur le menu «&nbsp;Administration&nbsp;», «&nbsp;Disques&nbsp;»,&nbsp;»Répertoire&nbsp;» puis cliquer sur «&nbsp;Créer: Directory&nbsp;» :</li>
+  <li>Renseigner les informations demandées puis cliquer sur «&nbsp;Créer&nbsp;»</li>
+  <li>Le répertoire backup est présent dans le Datastore :</li>
+</ul>
+<h2>Ajouter le nouveau stockage au sein du cluster proxmox</h2>
+<ul>
+  <li>Sur le serveur PBS(Proxmox Backup server), revenir sur le tableau de bord et cliquer sur «&nbsp;Show Fingerprint&nbsp;» :</li>
+  <li>Copier l’empreinte :</li>
+  <li>Depuis le cluster proxmox, menu Datacenter -&gt; Stockage -&gt; Ajouter :</li>
+  <li>Sélection «&nbsp;Proxmox Backup Server&nbsp;» :</li>
+  <li>Renseigner les champs et cliquer sur Ajouter:<ul>
+      <li>ID : donner un nom unique</li>
+      <li>Serveur : adresse IP ou FQDN du serveur PBS</li>
+      <li>Nom d’utilisateur : root@pam (normalement faudrait créé un utilisateur dédié)</li>
+      <li>Mot de passe : mot de passe de root de PBS</li>
+      <li>Datastore : le nom du datastore crée précédement dans PBS</li>
+      <li>Empreinte : coller l’empreinte de PBS</li>
+    </ul>
+  </li>
+  <li>Le stockage est disponible pour l’ensemble des noeuds du cluster proxmox :</li>
+</ul>
+<h2>Configuration tâche de sauvegarde des VM</h2>
+<p>Dans ce chapitre, la sauvegarde concerne la machine virtuelle dans son ensemble.</p>
+<ul>
+  <li>Menu Datacenter -&gt; Sauvegarde -&gt; Ajouter :</li>
+  <li>Créer une tâche de sauvegarde (pour le test, je créé une tâche sur une seule VM et seulement aujourd’hui), vérifier que ce soit le bon stockage correspondant au PBS :</li>
+  <li>Vérification de la sauvegarde effectuée :<ul>
+      <li>Sur le serveur PBS :</li>
+      <li>Sur le cluster Proxmox :</li>
+    </ul>
+  </li>
+</ul>
+<h2>Configuration tâche de sauvegarde des données de VM</h2>
+<p>Dans ce chapitre, la sauvegarde concerne les données de la machine virtuelle. Pour ce faire, il faut installer le client <strong>proxmox-backup-client</strong> sur la machine virtuelle (pour l’instant uniquement compatible Debian).</p>
+<ul>
+  <li>Installation, du client <strong>proxmox-backup-client</strong> sur une VM Debian :<ul>
+      <li>Ajout du dépôt :</li>
+      <li>Mise à jour des dépôts :</li>
+      <li>Installation de <strong>proxmox-backup-client</strong> :</li>
+    </ul>
+  </li>
+  <li>Première connexion entre la VM et PBS pour créér un ticket de session :</li>
+  <li>Sauvegarde de la partition /home (le format des sauvegarde est <a href="https://pbs.proxmox.com/docs/file-formats.html#pxar-format"><strong>.pxar</strong></a>):</li>
+</ul>
+<h2>Restauration des sauvegardes</h2>
+<ul>
+  <li>Concernant les VM, ça se passe directement sur le stockage ajouté au cluster :</li>
+  <li>Concernant les fichiers sauvegardés interne à la VM, se rendre sur l’interface web du PBS :<ul>
+      <li>Menu Datastore -&gt; backup -&gt; séledtionner la sauvegarde et cliquer sur l’icone + :</li>
+      <li>Une fois l’arborescence ouverte :<ul>
+          <li>Cliquer sur l’icône de dossiers afin de sélectionner un fichier particulier :<br>&nbsp;</li>
+        </ul>
+      </li>
+    </ul>
+  </li>
+</ul>
+<p>&nbsp;</p>
+<ul>
+  <li>Puis sélectionner le fichier et cliquer sur «&nbsp;Télécharger&nbsp;» :</li>
+</ul>
+<figure class="image"><img src="https://cdn-02.memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files-550x190.png" alt="" srcset="https://memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files-550x190.png 550w, https://memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files-250x87.png 250w, https://memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files-768x266.png 768w, https://memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files-200x69.png 200w, https://memo-linux.com/wp-content/uploads/2020/10/pbs_restore_tree_files.png 1259w" sizes="100vw" width="550"></figure>
+<h2>Conclusion</h2>
+<p>C’est un premier tour d’horizon de la solution Proxmox Backup Server, qui semble très prometteur sur la sauvegarde des fichiers à l’intérieur d’une VM. Cela mérite une simplification dans la mise en œuvre de ce type de sauvegarde, d’autant plus que je n’ai pas trouvé très clair la façon de faire des sauvegardes incrémentales (pas traité ici).<br>Concernant les sauvegardes des VM, pas besoin de PBS car la solution interne à proxmox suffit emplement avec un stockage externe (peut être ajouter nativement la <a href="https://memo-linux.com/proxmox-faire-des-sauvegardes-differentielles/"><strong>sauvegarde différentielle</strong></a>).</p>
+<h2>Ressources</h2>
+<ul>
+  <li><a href="https://pbs.proxmox.com/docs/administration-guide.html"><strong>https://pbs.proxmox.com/docs/administration-guide.html</strong></a></li>
+  <li><a href="https://www.abyssproject.net/2020/07/configuration-de-proxmox-backup-server/"><strong>https://www.abyssproject.net/2020/07/configuration-de-proxmox-backup-server/</strong></a></li>
+</ul>
